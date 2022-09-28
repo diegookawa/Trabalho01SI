@@ -1,0 +1,7 @@
+{
+    "python.analysis.extraPaths": [
+        "./pkg",
+        "./pkg/mesh",
+        "./pkg/planner"
+    ]
+}
