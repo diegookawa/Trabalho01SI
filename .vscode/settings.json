@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./RescueSimulator/pkg",
+        "./RescueSimulator/pkg/mesh"
+    ]
+}
