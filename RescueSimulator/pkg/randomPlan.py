@@ -1,5 +1,11 @@
+from contextlib import nullcontext
+import enum
 from random import randint
+from turtle import pos
+from zipfile import ZIP_BZIP2
 from state import State
+
+import numpy as np
 
 class RandomPlan:
     def __init__(self, maxRows, maxColumns, goal, initialState, name = "none", mesh = "square"):
@@ -62,6 +68,37 @@ class RandomPlan:
         
         return True
 
+    def create_untried_table(self):
+        untried_list = []
+        possibilities = ["N", "S", "L", "O", "NE", "NO", "SE", "SO"]
+        
+        for state in range(self.maxRows * self.maxColumns):
+            untried_list.append(possibilities)
+
+        return untried_list
+                    
+    def convertStateToPos(self, state):
+        return state.row * self.maxRows + state.col
+
+    def actions(self, state):
+        possibilities = ["N", "S", "L", "O", "NE", "NO", "SE", "SO"]
+        return possibilities
+
+    def online_dfs_agent(self, currentState):
+        unbacktracked = []
+        result = np.zeros_like((self.maxRows, self.maxColumns), State)
+        s = None
+        a = None
+        untried = self.create_untried_table()
+
+        if (self.convertStateToPos(currentState) not in enumerate(untried)):
+            untried[self.convertStateToPos(currentState)] = ["N", "S", "L", "O", "NE", "NO", "SE", "SO"]        
+        
+        if (s != None):
+            result[s, a] = currentState
+            
+
+
     def randomizeNextPosition(self):
          """ Sorteia uma direcao e calcula a posicao futura do agente 
          @return: tupla contendo a acao (direcao) e o estado futuro resultante da movimentacao """
@@ -90,6 +127,8 @@ class RandomPlan:
 
         ## Tenta encontrar um movimento possivel dentro do tabuleiro 
         result = self.randomizeNextPosition()
+
+        self.online_dfs_agent(self.currentState)
 
         while not self.isPossibleToMove(result[1]):
             result = self.randomizeNextPosition()
