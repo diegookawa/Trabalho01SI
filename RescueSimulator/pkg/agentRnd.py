@@ -4,6 +4,7 @@
 ### Executa raciocíni on-line: percebe --> [delibera] --> executa ação --> percebe --> ...
 import sys
 import os
+import numpy as np
 
 ## Importa Classes necessarias para o funcionamento
 from model import Model
@@ -20,13 +21,41 @@ from planner import Planner
 
 ## Classe que define o Agente
 class AgentRnd:
+
+    def create_untried_table(self, rows, columns):
+        untried_list = []
+        possibilities = ["N", "S", "L", "O", "NE", "NO", "SE", "SO"]
+        
+        for state in range(rows * columns):
+            untried_list.append(possibilities)
+
+        return untried_list
+                    
+    def convertStateToPos(self, state, rows):
+        return state.row * rows + state.col
+
+    def create_unbacktracked(self, rows, columns):
+        unbacktracked = []
+        stack = []
+
+        for i in range (rows * columns):
+            unbacktracked.append(stack)
+
+        return unbacktracked
+
     def __init__(self, model, configDict):
         """ 
         Construtor do agente random
         @param model referencia o ambiente onde o agente estah situado
         """
-       
+
         self.model = model
+
+        self.s = None
+        self.a = None
+        self.untried = self.create_untried_table(model.rows, model.columns)
+        self.unbacktracked = self.create_unbacktracked(model.rows, model.columns)
+        self.result = np.zeros_like((model.rows * model.columns, 8), State)
 
         ## Obtem o tempo que tem para executar
         self.tl = configDict["Te"]
@@ -122,7 +151,8 @@ class AgentRnd:
 
         ## Define a proxima acao a ser executada
         ## currentAction eh uma tupla na forma: <direcao>, <state>
-        result = self.plan.chooseAction()
+        # result = self.plan.chooseAction()
+        result = self.plan.chooseAction(self.untried, self.unbacktracked, self.result, self.s, self.a)
         print("Ag deliberou pela acao: ", result[0], " o estado resultado esperado é: ", result[1])
 
         ## Executa esse acao, atraves do metodo executeGo 

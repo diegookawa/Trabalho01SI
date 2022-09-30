@@ -68,36 +68,58 @@ class RandomPlan:
         
         return True
 
-    def create_untried_table(self):
-        untried_list = []
-        possibilities = ["N", "S", "L", "O", "NE", "NO", "SE", "SO"]
-        
-        for state in range(self.maxRows * self.maxColumns):
-            untried_list.append(possibilities)
-
-        return untried_list
-                    
     def convertStateToPos(self, state):
         return state.row * self.maxRows + state.col
 
-    def actions(self, state):
-        possibilities = ["N", "S", "L", "O", "NE", "NO", "SE", "SO"]
-        return possibilities
+    def oppositeAction(self, action):
+        
+        if (action == "N"):
+            return "S"
 
-    def online_dfs_agent(self, currentState):
-        unbacktracked = []
-        result = np.zeros_like((self.maxRows, self.maxColumns), State)
-        s = None
-        a = None
-        untried = self.create_untried_table()
+        elif (action == "S"):
+            return "N"
+
+        elif (action == "L"):
+            return "O"
+
+        elif (action == "O"):
+            return "L"
+
+        elif (action == "NE"):
+            return "SO"
+
+        elif (action == "NO"):
+            return "SE"
+
+        elif (action == "SE"):
+            return "NO"
+
+        else:
+            return "NE"
+
+
+    def online_dfs_agent(self, currentState, untried, unbacktracked, result, s, a):
 
         if (self.convertStateToPos(currentState) not in enumerate(untried)):
             untried[self.convertStateToPos(currentState)] = ["N", "S", "L", "O", "NE", "NO", "SE", "SO"]        
         
         if (s != None):
-            result[s, a] = currentState
-            
+            result[self.convertStateToPos(s), a] = currentState
+            unbacktracked[currentState].append(s)
 
+        if (len(untried[self.convertStateToPos(currentState)]) == 0):
+            if (len(unbacktracked[self.convertStateToPos(currentState)]) == 0):
+                return
+
+            else:
+                a = self.oppositeAction(unbacktracked[len(unbacktracked) - 1])
+
+        else:
+            a = untried[self.convertStateToPos(currentState)].pop()
+
+        s = currentState
+
+        return a, State(s.row, s.col)
 
     def randomizeNextPosition(self):
          """ Sorteia uma direcao e calcula a posicao futura do agente 
@@ -119,19 +141,19 @@ class RandomPlan:
          return movDirection, state
 
 
-    def chooseAction(self):
+    def chooseAction(self, untried, unbacktracked, result, s, a):
         """ Escolhe o proximo movimento de forma aleatoria. 
         Eh a acao que vai ser executada pelo agente. 
         @return: tupla contendo a acao (direcao) e uma instância da classe State que representa a posição esperada após a execução
         """
 
         ## Tenta encontrar um movimento possivel dentro do tabuleiro 
-        result = self.randomizeNextPosition()
+        # result = self.randomizeNextPosition()
 
-        self.online_dfs_agent(self.currentState)
+        result = self.online_dfs_agent(self.currentState, untried, unbacktracked, result, s, a)
 
-        while not self.isPossibleToMove(result[1]):
-            result = self.randomizeNextPosition()
+        # while not self.isPossibleToMove(result[1]):
+        #     result = self.randomizeNextPosition()
 
         return result
 
