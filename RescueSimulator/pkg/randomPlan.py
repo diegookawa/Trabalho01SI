@@ -72,7 +72,6 @@ class RandomPlan:
         return state.row * self.maxRows + state.col
 
     def oppositeAction(self, action):
-        
         if (action == "N"):
             return "S"
 
@@ -97,14 +96,45 @@ class RandomPlan:
         else:
             return "NE"
 
+    def convertActionToNumber(self, action):
+        if (action == "N"):
+            return 0
+
+        elif (action == "S"):
+            return 1
+
+        elif (action == "L"):
+            return 2
+
+        elif (action == "O"):
+            return 3
+
+        elif (action == "NE"):
+            return 4
+
+        elif (action == "NO"):
+            return 5
+
+        elif (action == "SE"):
+            return 6
+
+        else:
+            return 7
 
     def online_dfs_agent(self, currentState, untried, unbacktracked, result, s, a):
-
+        movePos = { "N" : (-1, 0),
+                    "S" : (1, 0),
+                    "L" : (0, 1),
+                    "O" : (0, -1),
+                    "NE" : (-1, 1),
+                    "NO" : (-1, -1),
+                    "SE" : (1, 1),
+                    "SO" : (1, -1)}
         if (self.convertStateToPos(currentState) not in enumerate(untried)):
             untried[self.convertStateToPos(currentState)] = ["N", "S", "L", "O", "NE", "NO", "SE", "SO"]        
         
         if (s != None):
-            result[self.convertStateToPos(s), a] = currentState
+            result[self.convertStateToPos(s), self.convertActionToNumber(a)] = currentState
             unbacktracked[currentState].append(s)
 
         if (len(untried[self.convertStateToPos(currentState)]) == 0):
@@ -119,7 +149,7 @@ class RandomPlan:
 
         s = currentState
 
-        return a, State(s.row, s.col)
+        return a, State(s.row + movePos[a][0], s.col + movePos[a][1])
 
     def randomizeNextPosition(self):
          """ Sorteia uma direcao e calcula a posicao futura do agente 
@@ -151,9 +181,9 @@ class RandomPlan:
         # result = self.randomizeNextPosition()
 
         result = self.online_dfs_agent(self.currentState, untried, unbacktracked, result, s, a)
-
-        # while not self.isPossibleToMove(result[1]):
-        #     result = self.randomizeNextPosition()
+    
+        while not self.isPossibleToMove(result[1]):
+           result = self.randomizeNextPosition()
 
         return result
 
