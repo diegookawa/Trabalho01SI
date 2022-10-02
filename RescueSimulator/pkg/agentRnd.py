@@ -13,7 +13,8 @@ from state import State
 from random import randint
 
 ## Importa o algoritmo para o plano
-from randomPlan import RandomPlan
+# from randomPlan import RandomPlan
+from dfsPlan import DfsPlan
 
 ##Importa o Planner
 sys.path.append(os.path.join("pkg", "planner"))
@@ -22,27 +23,6 @@ from planner import Planner
 ## Classe que define o Agente
 class AgentRnd:
 
-    def create_untried_table(self, rows, columns):
-        untried_list = []
-        possibilities = ["N", "S", "L", "O", "NE", "NO", "SE", "SO"]
-        
-        for state in range(rows * columns):
-            untried_list.append(possibilities)
-
-        return untried_list
-                    
-    def convertStateToPos(self, state, rows):
-        return state.row * rows + state.col
-
-    def create_unbacktracked(self, rows, columns):
-        unbacktracked = []
-        stack = []
-
-        for i in range (rows * columns):
-            unbacktracked.append(stack)
-
-        return unbacktracked
-
     def __init__(self, model, configDict):
         """ 
         Construtor do agente random
@@ -50,12 +30,6 @@ class AgentRnd:
         """
 
         self.model = model
-
-        self.s = None
-        self.a = None
-        self.untried = self.create_untried_table(model.rows, model.columns)
-        self.unbacktracked = self.create_unbacktracked(model.rows, model.columns)
-        self.result = np.zeros_like((model.rows * model.columns, 8), State)
 
         ## Obtem o tempo que tem para executar
         self.tl = configDict["Te"]
@@ -96,7 +70,7 @@ class AgentRnd:
         self.costAll = 0
 
         ## Cria a instancia do plano para se movimentar aleatoriamente no labirinto (sem nenhuma acao) 
-        self.plan = RandomPlan(model.rows, model.columns, self.prob.goalState, initial, "goal", self.mesh)
+        self.plan = DfsPlan(model.rows, model.columns, self.prob.goalState, initial, "goal", self.mesh)
 
         ## adicionar crencas sobre o estado do ambiente ao plano - neste exemplo, o agente faz uma copia do que existe no ambiente.
         ## Em situacoes de exploracao, o agente deve aprender em tempo de execucao onde estao as paredes
@@ -151,8 +125,13 @@ class AgentRnd:
 
         ## Define a proxima acao a ser executada
         ## currentAction eh uma tupla na forma: <direcao>, <state>
-        # result = self.plan.chooseAction()
-        result = self.plan.chooseAction(self.untried, self.unbacktracked, self.result, self.s, self.a)
+        result = self.plan.chooseAction()
+        # result = self.plan.chooseAction(self.plan.a, self.plan.s, self.plan.result, self.plan.unbacktracked, self.plan.untried )
+        # self.plan.a = result[0]
+        # self.plan.s = result[2]
+        # self.plan.result = result[3]
+        # self.plan.unbacktracked = result[4]
+        # self.plan.untried = result[5]
         print("Ag deliberou pela acao: ", result[0], " o estado resultado esperado é: ", result[1])
 
         ## Executa esse acao, atraves do metodo executeGo 

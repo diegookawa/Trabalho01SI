@@ -11,11 +11,11 @@ class State:
         self.row = row
         self.col = col
 
-    def __eq__(self, other):
-        if self.row == other.row and self.col == other.col:
-            return True
-        else:
-            return False
+    # def __eq__(self, other):
+    #     if self.row == other.row and self.col == other.col:
+    #         return True
+    #     else:
+    #         return False
 
     def __str__(self): 
         # Permite fazer um print(state) diretamente
