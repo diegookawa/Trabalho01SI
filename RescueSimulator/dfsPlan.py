@@ -31,9 +31,8 @@ class DfsPlan:
 
     def create_untried_table(self):
         untried = []
-        actions = ["N", "S", "L", "O", "NE", "NO", "SE", "SO"]
-
         for state in range(self.maxRows * self.maxColumns):
+            actions = ["SO", "SE", "NO", "NE", "O", "L", "S", "N"]
             untried.append(actions)
 
         return untried
@@ -86,25 +85,25 @@ class DfsPlan:
         return state.row * self.maxRows + state.col
 
     def convertActionToNumber(self, action):
-        if (action == "N"):
+        if (action == "SO"):
             return 0
 
-        elif (action == "S"):
+        elif (action == "SE"):
             return 1
 
-        elif (action == "L"):
+        elif (action == "NO"):
             return 2
 
-        elif (action == "O"):
+        elif (action == "NE"):
             return 3
 
-        elif (action == "NE"):
+        elif (action == "O"):
             return 4
 
-        elif (action == "NO"):
+        elif (action == "L"):
             return 5
 
-        elif (action == "SE"):
+        elif (action == "S"):
             return 6
 
         else:
@@ -112,28 +111,28 @@ class DfsPlan:
 
     def convertNumberToAction(self, number):
         if (number == 0):
-            return "N"
+            return "SO"
 
         elif (number == 1):
-            return "S"
-
-        elif (number == 2):
-            return "L"
-
-        elif (number == 3):
-            return "O"
-
-        elif (number == 4):
-            return "NE"
-
-        elif (number == 5):
-            return "NO"
-
-        elif (number == 6):
             return "SE"
 
+        elif (number == 2):
+            return "NO"
+
+        elif (number == 3):
+            return "NE"
+
+        elif (number == 4):
+            return "O"
+
+        elif (number == 5):
+            return "L"
+
+        elif (number == 6):
+            return "S"
+
         else:
-            return "SO"
+            return "N"
 
     def online_dfs_agent(self, currentState):
         movePos = { "N" : (-1, 0),
@@ -148,8 +147,8 @@ class DfsPlan:
         # if (goal_test(currentState)):
         #     return
 
-        if (self.convertStateToPos(currentState) > len(self.untried)):
-            self.untried.append(["N", "S", "L", "O", "NE", "NO", "SE", "SO"])
+        #if (self.convertStateToPos(currentState) > len(self.untried)):
+            #self.untried.append(["N", "S", "L", "O", "NE", "NO", "SE", "SO"])
 
         if (self.s is not None):
             if(self.result[self.convertStateToPos(self.s)][self.convertActionToNumber(self.a)] is None):
@@ -186,7 +185,7 @@ class DfsPlan:
         result = self.online_dfs_agent(self.currentState)
         
         while not self.isPossibleToMove(result[1]):
-           result = self.online_dfs_agent(self.currentState)
+            result = self.online_dfs_agent(self.currentState)
 
         return result
 
