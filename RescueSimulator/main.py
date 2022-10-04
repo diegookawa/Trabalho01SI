@@ -70,11 +70,13 @@ def main():
     agent.deliberate()
     while agent.deliberate() != -1:
         model.draw()
-        time.sleep(0) # para dar tempo de visualizar as movimentacoes do agente no labirinto
+        time.sleep(0.02) # para dar tempo de visualizar as movimentacoes do agente no labirinto
     model.draw()    
 
     for victim in agent.victims:
         print(victim)
+
+    print(len(agent.victims))
 
 if __name__ == '__main__':
     main()
