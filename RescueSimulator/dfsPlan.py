@@ -156,7 +156,7 @@ class DfsPlan:
                 self.result[self.convertStateToPos(self.s)][self.convertActionToNumber(self.a)] = currentState
 
         if (len(self.untried[self.convertStateToPos(currentState)]) == 0):
-            
+
             if (len(self.unbacktracked[self.convertStateToPos(currentState)]) == 0):
                 return
             
@@ -164,7 +164,7 @@ class DfsPlan:
                 state_to_go_back = self.unbacktracked[self.convertStateToPos(currentState)].pop()
                 action_number = -1
                 for number, state in enumerate(self.result[self.convertStateToPos(currentState)]):
-                    if (state == state_to_go_back):
+                    if (state.row == state_to_go_back.row and state.col == state_to_go_back.col):
                         action_number = number
                         break
                 
