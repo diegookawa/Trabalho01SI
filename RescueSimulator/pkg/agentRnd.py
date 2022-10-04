@@ -29,6 +29,7 @@ class AgentRnd:
         @param model referencia o ambiente onde o agente estah situado
         """
 
+        self.victims = []
         self.model = model
 
         ## Obtem o tempo que tem para executar
@@ -121,7 +122,8 @@ class AgentRnd:
         victimId = self.victimPresenceSensor()
         if victimId > 0:
             print ("vitima encontrada em ", self.currentState, " id: ", victimId, " sinais vitais: ", self.victimVitalSignalsSensor(victimId))
-            print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))
+            # print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))
+            self.victims.append(((self.currentState.row, self.currentState.col), self.victimVitalSignalsSensor(victimId)))
 
         ## Define a proxima acao a ser executada
         ## currentAction eh uma tupla na forma: <direcao>, <state>
@@ -132,12 +134,21 @@ class AgentRnd:
         # self.plan.result = result[3]
         # self.plan.unbacktracked = result[4]
         # self.plan.untried = result[5]
-        print("Ag deliberou pela acao: ", result[0], " o estado resultado esperado é: ", result[1])
+        try:
+            print("Ag deliberou pela acao: ", result[0], " o estado resultado esperado é: ", result[1])
+
+        except:
+            print("Finished")
 
         ## Executa esse acao, atraves do metodo executeGo 
-        self.executeGo(result[0])
-        self.previousAction = result[0]
-        self.expectedState = result[1]       
+        try:
+            self.executeGo(result[0])
+            self.previousAction = result[0]
+            self.expectedState = result[1]   
+
+        except:
+            print("Finished")    
+            return -1
 
         return 1
 

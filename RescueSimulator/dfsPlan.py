@@ -184,8 +184,12 @@ class DfsPlan:
     def chooseAction(self):
         result = self.online_dfs_agent(self.currentState)
         
-        while not self.isPossibleToMove(result[1]):
-            result = self.online_dfs_agent(self.currentState)
+        try:
+            while not self.isPossibleToMove(result[1]):
+                result = self.online_dfs_agent(self.currentState)
+
+        except:
+            print("Finished")
 
         return result
 
