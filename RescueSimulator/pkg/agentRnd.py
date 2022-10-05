@@ -38,7 +38,7 @@ class AgentRnd:
         
         ## Pega o tipo de mesh, que está no model (influência na movimentação)
         self.mesh = self.model.mesh
-
+        self.parents = []
 
         ## Cria a instância do problema na mente do agente (sao suas crencas)
         self.prob = Problem()
@@ -71,7 +71,7 @@ class AgentRnd:
         self.costAll = 0
 
         ## Cria a instancia do plano para se movimentar aleatoriamente no labirinto (sem nenhuma acao) 
-        self.plan = DfsPlan(model.rows, model.columns, self.prob.goalState, initial, "goal", self.mesh)
+        self.plan = DfsPlan(model.rows, model.columns, self.prob.goalState, initial, self.tl, "goal", self.mesh)
 
         ## adicionar crencas sobre o estado do ambiente ao plano - neste exemplo, o agente faz uma copia do que existe no ambiente.
         ## Em situacoes de exploracao, o agente deve aprender em tempo de execucao onde estao as paredes
@@ -111,6 +111,7 @@ class AgentRnd:
         ## consome o tempo gasto
         self.tl -= self.prob.getActionCost(self.previousAction)
         print("Tempo disponivel: ", self.tl)
+        self.plan.updateTime(self.tl)
 
         ## Verifica se atingiu o estado objetivo
         ## Poderia ser outra condição, como atingiu o custo máximo de operação
@@ -129,12 +130,6 @@ class AgentRnd:
         ## Define a proxima acao a ser executada
         ## currentAction eh uma tupla na forma: <direcao>, <state>
         result = self.plan.chooseAction()
-        # result = self.plan.chooseAction(self.plan.a, self.plan.s, self.plan.result, self.plan.unbacktracked, self.plan.untried )
-        # self.plan.a = result[0]
-        # self.plan.s = result[2]
-        # self.plan.result = result[3]
-        # self.plan.unbacktracked = result[4]
-        # self.plan.untried = result[5]
         try:
             print("Ag deliberou pela acao: ", result[0], " o estado resultado esperado é: ", result[1])
 

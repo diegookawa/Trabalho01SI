@@ -1,5 +1,6 @@
 from contextlib import nullcontext
 from random import randint
+import string
 from turtle import pos
 from zipfile import ZIP_BZIP2
 from state import State
@@ -8,7 +9,7 @@ import numpy as np
 import enum
 
 class DfsPlan:
-    def __init__(self, maxRows, maxColumns, goal, initialState, name = "none", mesh = "square"):
+    def __init__(self, maxRows, maxColumns, goal, initialState, timeLeft, name = "none", mesh = "square"):
 
         self.walls = []
         self.maxRows = maxRows
@@ -20,6 +21,9 @@ class DfsPlan:
 
         self.s = None
         self.a = None
+        self.parents = np.empty((self.maxRows * self.maxColumns), str)
+        self.timeLeft = timeLeft
+        self.initialTime = timeLeft
         self.result = self.create_result_table()
         self.untried = self.create_untried_table()
         self.unbacktracked = self.create_unbacktracked_table()
@@ -80,7 +84,10 @@ class DfsPlan:
                 return False
         
         return True
-    
+
+    def updateTime(self, timeLeft):
+        self.timeLeft = timeLeft
+
     def convertStateToPos(self, state):
         return state.row * self.maxRows + state.col
 
@@ -134,6 +141,31 @@ class DfsPlan:
         else:
             return "N"
 
+    def returnOppositeAction(self, action):
+        if (action == "SO"):
+            return "NE"
+
+        elif (action == "SE"):
+            return "NO"
+
+        elif (action == "NO"):
+            return "SE"
+
+        elif (action == "NE"):
+            return "SO"
+
+        elif (action == "O"):
+            return "L"
+
+        elif (action == "L"):
+            return "O"
+
+        elif (action == "S"):
+            return "N"
+
+        else:
+            return "S"
+
     def online_dfs_agent(self, currentState):
         movePos = { "N" : (-1, 0),
                 "S" : (1, 0),
@@ -150,31 +182,45 @@ class DfsPlan:
         #if (self.convertStateToPos(currentState) > len(self.untried)):
             #self.untried.append(["N", "S", "L", "O", "NE", "NO", "SE", "SO"])
 
-        if (self.s is not None):
-            if(self.result[self.convertStateToPos(self.s)][self.convertActionToNumber(self.a)] is None):
-                self.unbacktracked[self.convertStateToPos(currentState)].append(self.s)
-                self.result[self.convertStateToPos(self.s)][self.convertActionToNumber(self.a)] = currentState
-
-        if (len(self.untried[self.convertStateToPos(currentState)]) == 0):
-
-            if (len(self.unbacktracked[self.convertStateToPos(currentState)]) == 0):
-                return
+        
+        if (self.timeLeft <= (self.initialTime / 2)):
             
+            if (currentState.row == 0 and currentState.col == 0):
+                return
+                
             else:
-                state_to_go_back = self.unbacktracked[self.convertStateToPos(currentState)].pop()
-                action_number = -1
-                for number, state in enumerate(self.result[self.convertStateToPos(currentState)]):
-                    if (state.row == state_to_go_back.row and state.col == state_to_go_back.col):
-                        action_number = number
-                        break
                 
-                if (action_number == -1):
-                    action_number = 0
+                self.a = self.parents[self.convertStateToPos(currentState)]
 
-                self.a = self.convertNumberToAction(action_number)
-                
         else:
-            self.a = self.untried[self.convertStateToPos(currentState)].pop()
+
+            if (self.s is not None):
+                if (self.result[self.convertStateToPos(self.s)][self.convertActionToNumber(self.a)] is None):
+                    self.result[self.convertStateToPos(self.s)][self.convertActionToNumber(self.a)] = currentState
+                    if (self.isPossibleToMove(self.result[self.convertStateToPos(self.s)][self.convertActionToNumber(self.a)])):
+                        self.unbacktracked[self.convertStateToPos(currentState)].append(self.s)
+                        self.parents[self.convertStateToPos(currentState)] = self.returnOppositeAction(self.a)
+
+            if (len(self.untried[self.convertStateToPos(currentState)]) == 0):
+
+                if (len(self.unbacktracked[self.convertStateToPos(currentState)]) == 0):
+                    return
+                
+                else:
+                    state_to_go_back = self.unbacktracked[self.convertStateToPos(currentState)].pop()
+                    action_number = -1
+                    for number, state in enumerate(self.result[self.convertStateToPos(currentState)]):
+                        if (state.row == state_to_go_back.row and state.col == state_to_go_back.col):
+                            action_number = number
+                            break
+                    
+                    if (action_number == -1):
+                        action_number = 0
+
+                    self.a = self.convertNumberToAction(action_number)
+                    
+            else:
+                self.a = self.untried[self.convertStateToPos(currentState)].pop()
 
         self.s = currentState
         state = State(currentState.row + movePos[self.a][0], currentState.col + movePos[self.a][1])
