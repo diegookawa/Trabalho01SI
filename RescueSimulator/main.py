@@ -1,11 +1,13 @@
 import sys
 import os
 import time
+# from RescueSimulator.agentRescuer import AgentRescuer
 
 ## Importa as classes que serao usadas
 sys.path.append(os.path.join("pkg"))
 from model import Model
 from agentRnd import AgentRnd
+from agentRescuer import AgentRescuer
 
 
 ## Metodo utilizado para permitir que o usuario construa o labirindo clicando em cima
@@ -70,13 +72,20 @@ def main():
     agent.deliberate()
     while agent.deliberate() != -1:
         model.draw()
-        time.sleep(0.03) # para dar tempo de visualizar as movimentacoes do agente no labirinto
+        time.sleep(0) # para dar tempo de visualizar as movimentacoes do agente no labirinto
     model.draw()    
 
     for victim in agent.victims:
         print(victim)
 
-    print(len(agent.victims))
+    rescuer = AgentRescuer(model, configDict, agent.plan.result, agent.victims)
+    rescuer.deliberate()
+    while rescuer.deliberate() != -1:
+        model.draw()
+        time.sleep(0) # para dar tempo de visualizar as movimentacoes do agente no labirinto
+
+    model.draw() 
+    print(f'Saved victims: {rescuer.victimNumber}')
 
 if __name__ == '__main__':
     main()
