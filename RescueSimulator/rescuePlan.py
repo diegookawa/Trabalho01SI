@@ -246,15 +246,14 @@ class RescuePlan:
             return 7
 
     def chooseAction(self, currentVictim):
-
-        if (self.timeLeft <= (self.initialTime / 2)):
+        if(currentVictim is None):
             if (self.createdBackPath == False):
-                    for i in range(self.maxRows):
-                        for j in range(self.maxColumns):
-                            print(self.result[self.convertStateToPos(State(i, j))].type, end=" ")
-                        print("")
-                    self.backPath = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, self.initialState)
-                    self.createdBackPath = True
+                        for i in range(self.maxRows):
+                            for j in range(self.maxColumns):
+                                print(self.result[self.convertStateToPos(State(i, j))].type, end=" ")
+                            print("")
+                        self.backPath = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, self.initialState)
+                        self.createdBackPath = True
             elif(self.currentState.row == self.initialState.row and self.currentState.col == self.initialState.col):
                 return "ArrivedAtBase", self.currentState
 
@@ -267,23 +266,19 @@ class RescuePlan:
             self.currentState = state
 
             return action, state
-
         else:
+            if (self.timeLeft <= (self.initialTime / 2)):
+                if (self.createdBackPath == False):
+                        for i in range(self.maxRows):
+                            for j in range(self.maxColumns):
+                                print(self.result[self.convertStateToPos(State(i, j))].type, end=" ")
+                            print("")
+                        self.backPath = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, self.initialState)
+                        self.createdBackPath = True
+                elif(self.currentState.row == self.initialState.row and self.currentState.col == self.initialState.col):
+                    return "ArrivedAtBase", self.currentState
 
-            if(len(self.pathToVictim) >= 1):
-
-                if(self.s is not None):
-
-                    if(self.s.row == self.currentState.row and self.s.col == self.currentState.col):
-                        supposed = self.movePosition(self.currentState)
-                        if(supposed.row >= 0 and supposed.col >= 0):
-                            if(self.convertActionToNumber(self.a) > 3):
-                                self.result[self.convertStateToPos(supposed)].type = -1
-                        self.pathToVictim = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, currentVictim)
-                    elif(self.result[self.convertStateToPos(self.currentState)].type == 0):
-                        self.result[self.convertStateToPos(self.currentState)].type = 5
-
-                state = self.pathToVictim.pop()
+                state = self.backPath.pop()
                 action = self.actionToDo(self.currentState, state)
 
                 self.a = action
@@ -294,13 +289,38 @@ class RescuePlan:
                 return action, state
 
             else:
-                self.pathToVictim = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, currentVictim)
-                for state in self.pathToVictim:
-                    print(state)
 
-        if(self.createdBackPath == True):
-            return "ArrivedAtBase", self.currentState
-            
-        return "Finished", self.currentState
+                if(len(self.pathToVictim) >= 1):
+
+                    if(self.s is not None):
+
+                        if(self.s.row == self.currentState.row and self.s.col == self.currentState.col):
+                            supposed = self.movePosition(self.currentState)
+                            if(supposed.row >= 0 and supposed.col >= 0):
+                                if(self.convertActionToNumber(self.a) > 3):
+                                    self.result[self.convertStateToPos(supposed)].type = -1
+                            self.pathToVictim = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, currentVictim)
+                        elif(self.result[self.convertStateToPos(self.currentState)].type == 0):
+                            self.result[self.convertStateToPos(self.currentState)].type = 5
+
+                    state = self.pathToVictim.pop()
+                    action = self.actionToDo(self.currentState, state)
+
+                    self.a = action
+                    self.s = self.currentState
+                    
+                    self.currentState = state
+
+                    return action, state
+
+                else:
+                    self.pathToVictim = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, currentVictim)
+                    for state in self.pathToVictim:
+                        print(state)
+
+            if(self.createdBackPath == True):
+                return "ArrivedAtBase", self.currentState
+                
+            return "Finished", self.currentState
         
     

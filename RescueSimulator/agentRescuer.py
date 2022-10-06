@@ -92,8 +92,11 @@ class AgentRescuer:
 
         ## Define a proxima acao a ser executada
         ## currentAction eh uma tupla na forma: <direcao>, <state>
-        print(f"VITIMA {self.victims[self.victimNumber][0]}")
-        result = self.plan.chooseAction(self.victims[self.victimNumber][0])
+        try:
+            print(f"VITIMA {self.victims[self.victimNumber][0]}")
+            result = self.plan.chooseAction(self.victims[self.victimNumber][0])
+        except:
+            result = self.plan.chooseAction(None)
 
         if (result[0] is not "Finished"):
 
