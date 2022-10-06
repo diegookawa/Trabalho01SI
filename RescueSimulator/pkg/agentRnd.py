@@ -85,6 +85,12 @@ class AgentRnd:
         self.previousAction = "nop"    ## nenhuma (no operation)
         self.expectedState = self.currentState
 
+    def isInVictim(self, id):
+        for victim in self.victims:
+            if(victim[1][0][0] == id):
+                return True
+        return False
+
     ## Metodo que define a deliberacao do agente 
     def deliberate(self):
         ## Verifica se há algum plano a ser executado
@@ -125,7 +131,7 @@ class AgentRnd:
         if victimId > 0:
             print ("vitima encontrada em ", self.currentState, " id: ", victimId, " sinais vitais: ", self.victimVitalSignalsSensor(victimId))
             # print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))
-            if(((self.currentState.row, self.currentState.col), self.victimVitalSignalsSensor(victimId)) not in self.victims):
+            if(not self.isInVictim(victimId)):
                 self.plan.result[self.plan.convertStateToPos(State(self.currentState.row, self.currentState.col))].type = 1
                 self.victims.append((State(self.currentState.row, self.currentState.col), self.victimVitalSignalsSensor(victimId)))
 
@@ -152,6 +158,8 @@ class AgentRnd:
                     print(self.plan.result[self.plan.convertStateToPos(State(i, j))].type, end=" ")
                 print("")
             print("End Results")
+            print(len(self.victims))
+            time.sleep(10)
             return -1
 
         return 1
