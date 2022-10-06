@@ -207,6 +207,17 @@ class DfsPlan:
             if (self.s is not None):
                 if (self.result[self.convertStateToPos(self.s)].directions[self.convertActionToNumber(self.a)] is None):
                     self.result[self.convertStateToPos(self.s)].directions[self.convertActionToNumber(self.a)] = currentState
+                    print(self.s, end=" +")
+                    print(currentState)
+                    if(self.s.row != currentState.row or self.s.col != currentState.col):
+                        self.result[self.convertStateToPos(currentState)].directions[self.convertActionToNumber(self.returnOppositeAction(self.a))] = self.s
+                        print("Inverse")
+                        print(self.convertActionToNumber(self.returnOppositeAction(self.a)))
+                        print(currentState)
+                        try:
+                            self.untried[self.convertStateToPos(currentState)].pop(self.untried[self.convertStateToPos(currentState)].index(self.returnOppositeAction(self.a)))
+                        except:
+                            print("Already tried")
                     if (self.isPossibleToMove(self.result[self.convertStateToPos(self.s)].directions[self.convertActionToNumber(self.a)])):
                         self.unbacktracked[self.convertStateToPos(currentState)].append(self.s)
 
@@ -216,12 +227,17 @@ class DfsPlan:
                     return
                 
                 else:
+                    print("Backtracking")
                     state_to_go_back = self.unbacktracked[self.convertStateToPos(currentState)].pop()
+                    print(state_to_go_back)
                     action_number = -1
                     current = self.result[self.convertStateToPos(currentState)]
                     for i in range(8):
+                        print(current.directions[i], end='')
+                        print(i)
                         if (current.directions[i].row == state_to_go_back.row and current.directions[i].col == state_to_go_back.col):
                             action_number = i
+                            print(i)
                             break
                     
                     if (action_number == -1):
@@ -260,8 +276,10 @@ class DfsPlan:
             bestIndex = self.findBestState(fringe, heuristic)
             state = fringe.pop(bestIndex)
 
-            if (state == finalState):
+            if (state.row == finalState.row and state.col == finalState.col):
                 foundSolution = True
+                if(foundSolution):
+                    print("Found")
                 break
 
             nextStates = self.findNextStates(map, rows, columns, state)
