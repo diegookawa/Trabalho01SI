@@ -11,6 +11,7 @@ from model import Model
 from problem import Problem
 from state import State
 from random import randint
+import time
 
 ## Importa o algoritmo para o plano
 # from randomPlan import RandomPlan
@@ -125,6 +126,7 @@ class AgentRnd:
             print ("vitima encontrada em ", self.currentState, " id: ", victimId, " sinais vitais: ", self.victimVitalSignalsSensor(victimId))
             # print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))
             if(((self.currentState.row, self.currentState.col), self.victimVitalSignalsSensor(victimId)) not in self.victims):
+                self.plan.result[self.plan.convertStateToPos(State(self.currentState.row, self.currentState.col))].type = 1
                 self.victims.append(((self.currentState.row, self.currentState.col), self.victimVitalSignalsSensor(victimId)))
 
         ## Define a proxima acao a ser executada
@@ -143,7 +145,13 @@ class AgentRnd:
             self.expectedState = result[1]   
 
         except:
-            print("Finished")    
+            print("Finished")   
+            print("Results")
+            for i in range(self.plan.maxRows):
+                for j in range(self.plan.maxColumns):
+                    print(self.plan.result[self.plan.convertStateToPos(State(i, j))].type, end=" ")
+                print("")
+            print("End Results")
             return -1
 
         return 1

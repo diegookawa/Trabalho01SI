@@ -186,8 +186,9 @@ class DfsPlan:
                 "NO" : (-1, -1),
                 "SE" : (1, 1),
                 "SO" : (1, -1)}
+        s = State(currentState.row + movePos[self.a][0], currentState.col + movePos[self.a][1])
+        return s if s.row < self.maxRows and s.col < self.maxColumns else State(-1, -1) 
 
-        return State(currentState.row + movePos[self.a][0], currentState.col + movePos[self.a][1])
         
     def online_dfs_agent(self, currentState):
         movePos = { "N" : (-1, 0),
@@ -206,7 +207,7 @@ class DfsPlan:
             #self.untried.append(["N", "S", "L", "O", "NE", "NO", "SE", "SO"])
 
         
-        if (self.timeLeft <= (self.initialTime / 2)):
+        if (self.timeLeft <= (self.initialTime / 8)):
             
             if (currentState.row == 0 and currentState.col == 0):
                 return
@@ -262,7 +263,8 @@ class DfsPlan:
                 self.a = self.untried[self.convertStateToPos(currentState)].pop()
 
         self.s = currentState
-        self.result[self.convertStateToPos(currentState)].type = 5
+        if(self.result[self.convertStateToPos(currentState)].type <= 0):
+            self.result[self.convertStateToPos(currentState)].type = 5
 
         state = self.movePosition(currentState)
 
@@ -335,7 +337,7 @@ class DfsPlan:
         j = state.col
         nextStates = []
 
-        if i > 0 and map[self.convertStateToPos(State(i - 1, j))].type != -1: 
+        if i > 0 and map[self.convertStateToPos(State(i - 1, j))].type != -1:
             nextStates.append(State(i - 1, j))
 
         if i + 1 < rows and map[self.convertStateToPos(State(i + 1, j))].type != -1:
@@ -412,14 +414,7 @@ class DfsPlan:
                 while not self.isPossibleToMove(result[1]):
                     if(self.convertActionToNumber(result[0]) > 3):
                         if(result[1].row >= 0 and result[1].col >= 0):
-                            print(result[0])
-                            print(result[1])
                             self.result[self.convertStateToPos(result[1])].type = -1
-                        print("Results")
-                        for i in range(self.maxRows):
-                            for j in range(self.maxColumns):
-                                print(self.result[self.convertStateToPos(State(i, j))].type, end=" ")
-                            print("")
                     result = self.online_dfs_agent(self.currentState)
 
             except:
@@ -435,8 +430,14 @@ class DfsPlan:
 
             if(len(self.backPath) > 1):
                 if(self.s.row == self.currentState.row and self.s.col == self.currentState.col):
-                    self.result[self.convertStateToPos(self.movePosition(self.currentState))].type = -1
+                    supposed = self.movePosition(self.currentState)
+                    if(supposed.row >= 0 and supposed.col >= 0):
+                        if(self.convertActionToNumber(self.a) > 3):
+                            self.result[self.convertStateToPos(supposed)].type = -1
                     self.backPath = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, self.initialState)
+                elif(self.result[self.convertStateToPos(self.currentState)].type == 0):
+                    self.result[self.convertStateToPos(self.currentState)].type = 5
+
                 state = self.backPath.pop()
                 action = self.actionToDo(self.currentState, state)
                 
