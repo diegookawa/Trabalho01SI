@@ -95,19 +95,27 @@ class AgentRescuer:
         print(f"VITIMA {self.victims[self.victimNumber][0]}")
         result = self.plan.chooseAction(self.victims[self.victimNumber][0])
 
-        try:
-            print("Ag deliberou pela acao: ", result[0], " o estado resultado esperado é: ", result[1])
+        if (result[0] is not "Finished"):
 
-        except:
-            print("Finished")
+            if(result[0] is "ArrivedAtBase"):
+                return -1
 
-        ## Executa esse acao, atraves do metodo executeGo 
-        try:
-            self.executeGo(result[0])
-            self.previousAction = result[0]
-            self.expectedState = result[1]   
+            try:
+                print("Ag deliberou pela acao: ", result[0], " o estado resultado esperado é: ", result[1])
 
-        except:
+            except:
+                print("Finished")
+
+            ## Executa esse acao, atraves do metodo executeGo 
+            try:
+                self.executeGo(result[0])
+                self.previousAction = result[0]
+                self.expectedState = result[1]   
+
+            except:
+                print("ERROR")
+        else:
+
             print("Victim saved")    
             self.victimNumber = self.victimNumber + 1
 

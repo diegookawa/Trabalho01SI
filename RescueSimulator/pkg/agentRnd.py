@@ -125,7 +125,7 @@ class AgentRnd:
         if victimId > 0:
             print ("vitima encontrada em ", self.currentState, " id: ", victimId, " sinais vitais: ", self.victimVitalSignalsSensor(victimId))
             # print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))
-            if(((self.currentState.row, self.currentState.col), self.victimVitalSignalsSensor(victimId)) not in self.victims):
+            if((State(self.currentState.row, self.currentState.col), self.victimVitalSignalsSensor(victimId)) not in self.victims):
                 self.plan.result[self.plan.convertStateToPos(State(self.currentState.row, self.currentState.col))].type = 1
                 self.victims.append((State(self.currentState.row, self.currentState.col), self.victimVitalSignalsSensor(victimId)))
 

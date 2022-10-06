@@ -256,7 +256,7 @@ class RescuePlan:
                     self.backPath = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, self.initialState)
                     self.createdBackPath = True
             elif(self.currentState.row == self.initialState.row and self.currentState.col == self.initialState.col):
-                return -1, (-1, -1)
+                return "ArrivedAtBase", self.currentState
 
             state = self.backPath.pop()
             action = self.actionToDo(self.currentState, state)
@@ -298,5 +298,9 @@ class RescuePlan:
                 for state in self.pathToVictim:
                     print(state)
 
-        return None
+        if(self.createdBackPath == True):
+            return "ArrivedAtBase", self.currentState
+            
+        return "Finished", self.currentState
+        
     
