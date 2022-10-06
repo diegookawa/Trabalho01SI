@@ -9,6 +9,7 @@ import numpy as np
 import sys
 import math
 import enum
+import time
 
 class Result:
     def __init__(self):
@@ -86,6 +87,12 @@ class RescuePlan:
                 "SO" : (1, -1)}
 
         return State(currentState.row + movePos[self.a][0], currentState.col + movePos[self.a][1])
+
+    def isInList(self, list, state):
+        for i in range(len(list)):
+            if(list[i].row == state.row and list[i].col == state.col):
+                return True
+        return False
         
     def star_a_search (self, map, rows, columns, initialState, finalState):
         euclideanDistance = {}
@@ -102,8 +109,8 @@ class RescuePlan:
 
         fringe = []
         fringe.append(initialState)
-
         while (len (fringe) != 0):
+
             bestIndex = self.findBestState(fringe, heuristic)
             state = fringe.pop(bestIndex)
 
@@ -120,8 +127,7 @@ class RescuePlan:
 
                 next = nextStates[i]
 
-                if (next not in neighborStates and next not in fringe):
-                    
+                if (not self.isInList(neighborStates, next) and not self.isInList(fringe, state)):
                     fringe.append(next)
 
                     if next not in heuristic.keys():
@@ -241,11 +247,6 @@ class RescuePlan:
 
     def chooseAction(self, currentVictim):
 
-        self.pathToVictim = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, currentVictim)
-        for state in self.pathToVictim:
-            print(state)
-
-
         if (self.timeLeft <= (self.initialTime / 2)):
             if (self.createdBackPath == False):
                     for i in range(self.maxRows):
@@ -254,6 +255,8 @@ class RescuePlan:
                         print("")
                     self.backPath = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, self.initialState)
                     self.createdBackPath = True
+            elif(self.currentState.row == self.initialState.row and self.currentState.col == self.initialState.col):
+                return -1, (-1, -1)
 
             state = self.backPath.pop()
             action = self.actionToDo(self.currentState, state)
@@ -289,6 +292,11 @@ class RescuePlan:
                 self.currentState = state
 
                 return action, state
+
+            else:
+                self.pathToVictim = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, currentVictim)
+                for state in self.pathToVictim:
+                    print(state)
 
         return None
     

@@ -72,7 +72,7 @@ class AgentRescuer:
         print("Ag cre que esta em: ", self.currentState)
 
         ## Verifica se a execução do acao do ciclo anterior funcionou ou nao
-        if not (self.currentState == self.expectedState):
+        if not (self.currentState.row == self.expectedState.row and self.currentState.col == self.expectedState.col):
             print("---> erro na execucao da acao ", self.previousAction, ": esperava estar em ", self.expectedState, ", mas estou em ", self.currentState)
 
         ## Funcionou ou nao, vou somar o custo da acao com o total 
