@@ -8,6 +8,11 @@ from state import State
 import numpy as np
 import enum
 
+class Result:
+    def __init__(self):
+        self.type = 0
+        self.directions = np.empty_like(8, State)
+
 class DfsPlan:
     def __init__(self, maxRows, maxColumns, goal, initialState, timeLeft, name = "none", mesh = "square"):
 
@@ -27,10 +32,12 @@ class DfsPlan:
         self.result = self.create_result_table()
         self.untried = self.create_untried_table()
         self.unbacktracked = self.create_unbacktracked_table()
-
+            
     def create_result_table(self):
-        result = np.empty((self.maxRows * self.maxColumns, 8), State)
-
+        result = []
+        for i in range(self.maxColumns*self.maxRows):
+            result.append(Result())
+            result[i].directions = np.empty(8, State)
         return result
 
     def create_untried_table(self):
@@ -187,17 +194,16 @@ class DfsPlan:
             
             if (currentState.row == 0 and currentState.col == 0):
                 return
-                
             else:
-                
+                print(self.parents[self.convertStateToPos(currentState)])
                 self.a = self.parents[self.convertStateToPos(currentState)]
 
         else:
 
             if (self.s is not None):
-                if (self.result[self.convertStateToPos(self.s)][self.convertActionToNumber(self.a)] is None):
-                    self.result[self.convertStateToPos(self.s)][self.convertActionToNumber(self.a)] = currentState
-                    if (self.isPossibleToMove(self.result[self.convertStateToPos(self.s)][self.convertActionToNumber(self.a)])):
+                if (self.result[self.convertStateToPos(self.s)].directions[self.convertActionToNumber(self.a)] is None):
+                    self.result[self.convertStateToPos(self.s)].directions[self.convertActionToNumber(self.a)] = currentState
+                    if (self.isPossibleToMove(self.result[self.convertStateToPos(self.s)].directions[self.convertActionToNumber(self.a)])):
                         self.unbacktracked[self.convertStateToPos(currentState)].append(self.s)
                         self.parents[self.convertStateToPos(currentState)] = self.returnOppositeAction(self.a)
 
@@ -209,9 +215,10 @@ class DfsPlan:
                 else:
                     state_to_go_back = self.unbacktracked[self.convertStateToPos(currentState)].pop()
                     action_number = -1
-                    for number, state in enumerate(self.result[self.convertStateToPos(currentState)]):
-                        if (state.row == state_to_go_back.row and state.col == state_to_go_back.col):
-                            action_number = number
+                    current = self.result[self.convertStateToPos(currentState)]
+                    for i in range(8):
+                        if (current.directions[i].row == state_to_go_back.row and current.directions[i].col == state_to_go_back.col):
+                            action_number = i
                             break
                     
                     if (action_number == -1):
@@ -223,6 +230,8 @@ class DfsPlan:
                 self.a = self.untried[self.convertStateToPos(currentState)].pop()
 
         self.s = currentState
+        self.result[self.convertStateToPos(currentState)].type = 5
+
         state = State(currentState.row + movePos[self.a][0], currentState.col + movePos[self.a][1])
 
         return self.a, state
@@ -232,9 +241,21 @@ class DfsPlan:
         
         try:
             while not self.isPossibleToMove(result[1]):
+                if(self.convertActionToNumber(result[0]) > 3):
+                    if(result[1].row >= 0 and result[1].col >= 0):
+                        print(result[0])
+                        print(result[1])
+                        self.result[self.convertStateToPos(result[1])].type = -1
+                    print("Results")
+                    for i in range(self.maxRows):
+                        for j in range(self.maxColumns):
+                            print(self.result[self.convertStateToPos(State(i, j))].type, end=" ")
+                        print("")
                 result = self.online_dfs_agent(self.currentState)
 
         except:
+            
+
             print("Finished")
 
         return result
