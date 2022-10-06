@@ -270,7 +270,6 @@ class DfsPlan:
 
         fringe = []
         fringe.append(initialState)
-        itr = 1
 
         while (len (fringe) != 0):
             bestIndex = self.findBestState(fringe, heuristic)
@@ -299,8 +298,6 @@ class DfsPlan:
                         heuristic[next] = euclideanDistance[next] + travelledDistance[next]
                         parents[next] = state
 
-            itr = itr + 1
-
         if foundSolution == True:
             return self.createPath(state, parents)
 
@@ -315,8 +312,9 @@ class DfsPlan:
             path.append(parents[state])
             state = parents[state]
 
-        path = path[::-1]
-
+        # path = path[::-1]
+        path.pop()
+        
         return path
 
     def findNextStates(self, map, rows, columns, state):
@@ -367,32 +365,57 @@ class DfsPlan:
     def returnEuclideanDistance(self, initialState, finalState):
         return math.sqrt((pow(initialState.row - finalState.row, 2) + pow(initialState.col - finalState.col, 2)))
 
+    def actionToDo(self, state01, state02):
+        movePos = { (-1, 0) : "N",
+                (1, 0) : "S",
+                (0, 1) : "L",
+                (0, -1) : "O",
+                (-1, 1) : "NE",
+                (-1, -1) : "NO",
+                (1, 1) : "SE",
+                (1, -1) : "SO"}
+
+        stateResult = (state02.row - state01.row, state02.col - state01.col)
+
+        return movePos[stateResult]
+
     def chooseAction(self):
-        result = self.online_dfs_agent(self.currentState)
-        
-        try:
-            while not self.isPossibleToMove(result[1]):
-                if(self.convertActionToNumber(result[0]) > 3):
-                    if(result[1].row >= 0 and result[1].col >= 0):
-                        print(result[0])
-                        print(result[1])
-                        self.result[self.convertStateToPos(result[1])].type = -1
-                    print("Results")
-                    for i in range(self.maxRows):
-                        for j in range(self.maxColumns):
-                            print(self.result[self.convertStateToPos(State(i, j))].type, end=" ")
-                        print("")
-                result = self.online_dfs_agent(self.currentState)
 
-        except:
+        if (self.createdBackPath is False):
 
-            print("Finished")
+            result = self.online_dfs_agent(self.currentState)
+            
+            try:
+                while not self.isPossibleToMove(result[1]):
+                    if(self.convertActionToNumber(result[0]) > 3):
+                        if(result[1].row >= 0 and result[1].col >= 0):
+                            print(result[0])
+                            print(result[1])
+                            self.result[self.convertStateToPos(result[1])].type = -1
+                        print("Results")
+                        for i in range(self.maxRows):
+                            for j in range(self.maxColumns):
+                                print(self.result[self.convertStateToPos(State(i, j))].type, end=" ")
+                            print("")
+                    result = self.online_dfs_agent(self.currentState)
 
-        return result
+            except:
 
+                print("Finished")
 
+            return result
 
-        
-       
-        
-        
+        else:
+            
+            for state in self.backPath:
+                print(state)
+
+            if(len(self.backPath) > 1):
+                state = self.backPath.pop()
+                action = self.actionToDo(self.currentState, state)
+
+                self.currentState = state
+                return action, state
+
+        return None
+    
