@@ -6,6 +6,8 @@ from zipfile import ZIP_BZIP2
 from state import State
 
 import numpy as np
+import sys
+import math
 import enum
 
 class Result:
@@ -26,7 +28,8 @@ class DfsPlan:
 
         self.s = None
         self.a = None
-        self.parents = np.empty((self.maxRows * self.maxColumns), str)
+        self.createdBackPath = False
+        self.backPath = []
         self.timeLeft = timeLeft
         self.initialTime = timeLeft
         self.result = self.create_result_table()
@@ -195,8 +198,9 @@ class DfsPlan:
             if (currentState.row == 0 and currentState.col == 0):
                 return
             else:
-                print(self.parents[self.convertStateToPos(currentState)])
-                self.a = self.parents[self.convertStateToPos(currentState)]
+                if (self.createdBackPath == False):
+                    self.backPath = self.star_a_search(self.result, self.maxRows, self.maxColumns, currentState, self.initialState)
+                    self.createdBackPath = True
 
         else:
 
@@ -205,7 +209,6 @@ class DfsPlan:
                     self.result[self.convertStateToPos(self.s)].directions[self.convertActionToNumber(self.a)] = currentState
                     if (self.isPossibleToMove(self.result[self.convertStateToPos(self.s)].directions[self.convertActionToNumber(self.a)])):
                         self.unbacktracked[self.convertStateToPos(currentState)].append(self.s)
-                        self.parents[self.convertStateToPos(currentState)] = self.returnOppositeAction(self.a)
 
             if (len(self.untried[self.convertStateToPos(currentState)]) == 0):
 
@@ -236,6 +239,116 @@ class DfsPlan:
 
         return self.a, state
 
+    def star_a_search (self, map, rows, columns, initialState, finalState):
+        euclideanDistance = {}
+        travelledDistance = {}
+        heuristic = {}
+        parents = {}
+        neighborStates = []
+        foundSolution = False
+
+        travelledDistance[initialState] = 0
+        euclideanDistance[initialState] = self.returnEuclideanDistance(initialState, finalState)
+        heuristic[initialState] = travelledDistance[initialState] + euclideanDistance[initialState]
+        parents[initialState] = None
+
+        fringe = []
+        fringe.append(initialState)
+        itr = 1
+
+        while (len (fringe) != 0):
+            bestIndex = self.findBestState(fringe, heuristic)
+            state = fringe.pop(bestIndex)
+
+            if (state == finalState):
+                foundSolution = True
+                break
+
+            nextStates = self.findNextStates(map, rows, columns, state)
+            neighborStates.append(state)
+
+            for i in range(len(nextStates)):
+
+                next = nextStates[i]
+
+                if (next not in neighborStates and next not in fringe):
+                    
+                    fringe.append(next)
+
+                    if next not in heuristic.keys():
+                        euclideanDistance[next] = self.returnEuclideanDistance(next, finalState)
+                        travelledDistance[next] = travelledDistance[state] + 1
+                        heuristic[next] = euclideanDistance[next] + travelledDistance[next]
+                        parents[next] = state
+
+            itr = itr + 1
+
+        if foundSolution == True:
+            return self.createPath(state, parents)
+
+        else:
+            return None
+
+    def createPath(self, state, parents):
+        path = []
+        path.append(state)
+
+        while parents[state] != None:
+            path.append(parents[state])
+            state = parents[state]
+
+        path = path[::-1]
+
+        return path
+
+    def findNextStates(self, map, rows, columns, state):
+        i = state.row
+        j = state.col
+        nextStates = []
+
+        if i > 0 and map[self.convertStateToPos(State(i - 1, j))] != -1: 
+            nextStates.append(State(i - 1, j))
+
+        if i + 1 < rows and map[self.convertStateToPos(State(i + 1, j))] != -1:
+            nextStates.append(State(i + 1, j))
+
+        if j > 0 and map[self.convertStateToPos(State(i, j - 1))] != -1:
+            nextStates.append(State(i, j - 1))
+
+        if j + 1 < columns and map[self.convertStateToPos(State(i, j + 1))] != -1:
+            nextStates.append(State(i, j + 1))
+
+        if j > 0 and i > 0 and map[self.convertStateToPos(State(i - 1, j - 1))] != -1:
+            nextStates.append(State(i - 1, j - 1))
+
+        if j > 0 and i + 1 < rows and map[self.convertStateToPos(State(i + 1, j - 1))] != -1:
+            nextStates.append(State(i + 1, j - 1))
+
+        if j + 1 < columns and i > 0 and map[self.convertStateToPos(State(i - 1, j + 1))] != -1:
+            nextStates.append(State(i - 1, j + 1))
+
+        if j + 1 < columns and i + 1 < rows and map[self.convertStateToPos(State(i + 1, j + 1))] != -1:
+            nextStates.append(State(i + 1, j + 1))
+
+        return nextStates
+
+    def findBestState(self, fringe, heuristic):
+        bestValue = sys.float_info.max
+        bestIndex = 0
+        index = 0
+
+        for state in fringe:
+            if (heuristic[state] < bestValue):
+                bestValue = heuristic[state]
+                bestIndex = index
+
+            index = index + 1
+
+        return bestIndex
+
+    def returnEuclideanDistance(self, initialState, finalState):
+        return math.sqrt((pow(initialState.row - finalState.row, 2) + pow(initialState.col - finalState.col, 2)))
+
     def chooseAction(self):
         result = self.online_dfs_agent(self.currentState)
         
@@ -254,7 +367,6 @@ class DfsPlan:
                 result = self.online_dfs_agent(self.currentState)
 
         except:
-            
 
             print("Finished")
 
