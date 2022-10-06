@@ -176,6 +176,19 @@ class DfsPlan:
         else:
             return "S"
 
+    def movePosition(self, currentState):
+        
+        movePos = { "N" : (-1, 0),
+                "S" : (1, 0),
+                "L" : (0, 1),
+                "O" : (0, -1),
+                "NE" : (-1, 1),
+                "NO" : (-1, -1),
+                "SE" : (1, 1),
+                "SO" : (1, -1)}
+
+        return State(currentState.row + movePos[self.a][0], currentState.col + movePos[self.a][1])
+        
     def online_dfs_agent(self, currentState):
         movePos = { "N" : (-1, 0),
                 "S" : (1, 0),
@@ -251,7 +264,7 @@ class DfsPlan:
         self.s = currentState
         self.result[self.convertStateToPos(currentState)].type = 5
 
-        state = State(currentState.row + movePos[self.a][0], currentState.col + movePos[self.a][1])
+        state = self.movePosition(currentState)
 
         return self.a, state
 
@@ -322,28 +335,28 @@ class DfsPlan:
         j = state.col
         nextStates = []
 
-        if i > 0 and map[self.convertStateToPos(State(i - 1, j))] != -1: 
+        if i > 0 and map[self.convertStateToPos(State(i - 1, j))].type != -1: 
             nextStates.append(State(i - 1, j))
 
-        if i + 1 < rows and map[self.convertStateToPos(State(i + 1, j))] != -1:
+        if i + 1 < rows and map[self.convertStateToPos(State(i + 1, j))].type != -1:
             nextStates.append(State(i + 1, j))
 
-        if j > 0 and map[self.convertStateToPos(State(i, j - 1))] != -1:
+        if j > 0 and map[self.convertStateToPos(State(i, j - 1))].type != -1:
             nextStates.append(State(i, j - 1))
 
-        if j + 1 < columns and map[self.convertStateToPos(State(i, j + 1))] != -1:
+        if j + 1 < columns and map[self.convertStateToPos(State(i, j + 1))].type != -1:
             nextStates.append(State(i, j + 1))
 
-        if j > 0 and i > 0 and map[self.convertStateToPos(State(i - 1, j - 1))] != -1:
+        if j > 0 and i > 0 and map[self.convertStateToPos(State(i - 1, j - 1))].type != -1 and map[self.convertStateToPos(State(i - 1, j))].type != -1 and map[self.convertStateToPos(State(i, j - 1))].type != -1:
             nextStates.append(State(i - 1, j - 1))
 
-        if j > 0 and i + 1 < rows and map[self.convertStateToPos(State(i + 1, j - 1))] != -1:
+        if j > 0 and i + 1 < rows and map[self.convertStateToPos(State(i + 1, j - 1))].type != -1 and map[self.convertStateToPos(State(i + 1, j))].type != -1 and map[self.convertStateToPos(State(i, j - 1))].type != -1:
             nextStates.append(State(i + 1, j - 1))
 
-        if j + 1 < columns and i > 0 and map[self.convertStateToPos(State(i - 1, j + 1))] != -1:
+        if j + 1 < columns and i > 0 and map[self.convertStateToPos(State(i - 1, j + 1))].type != -1 and map[self.convertStateToPos(State(i - 1, j))].type != -1 and map[self.convertStateToPos(State(i, j + 1))].type != -1:
             nextStates.append(State(i - 1, j + 1))
 
-        if j + 1 < columns and i + 1 < rows and map[self.convertStateToPos(State(i + 1, j + 1))] != -1:
+        if j + 1 < columns and i + 1 < rows and map[self.convertStateToPos(State(i + 1, j + 1))].type != -1 and map[self.convertStateToPos(State(i + 1, j))].type != -1 and map[self.convertStateToPos(State(i, j + 1))].type != -1:
             nextStates.append(State(i + 1, j + 1))
 
         return nextStates
@@ -384,6 +397,16 @@ class DfsPlan:
         if (self.createdBackPath is False):
 
             result = self.online_dfs_agent(self.currentState)
+            if(self.createdBackPath):
+                for state in self.backPath:
+                    print(state)
+
+                if(len(self.backPath) > 1):
+                    state = self.backPath.pop()
+                    action = self.actionToDo(self.currentState, state)
+
+                    self.currentState = state
+                    return action, state
             
             try:
                 while not self.isPossibleToMove(result[1]):
@@ -411,9 +434,15 @@ class DfsPlan:
                 print(state)
 
             if(len(self.backPath) > 1):
+                if(self.s.row == self.currentState.row and self.s.col == self.currentState.col):
+                    self.result[self.convertStateToPos(self.movePosition(self.currentState))].type = -1
+                    self.backPath = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, self.initialState)
                 state = self.backPath.pop()
                 action = self.actionToDo(self.currentState, state)
-
+                
+                self.a = action
+                self.s = self.currentState
+                
                 self.currentState = state
                 return action, state
 
