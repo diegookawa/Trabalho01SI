@@ -215,6 +215,7 @@ class DfsPlan:
                 if (self.createdBackPath == False):
                     self.backPath = self.star_a_search(self.result, self.maxRows, self.maxColumns, currentState, self.initialState)
                     self.createdBackPath = True
+                    return
 
         else:
 
@@ -420,6 +421,16 @@ class DfsPlan:
             except:
 
                 print("Finished")
+                
+                for state in self.backPath:
+                    print(state)
+
+                if(len(self.backPath) > 1):
+                    state = self.backPath.pop()
+                    action = self.actionToDo(self.currentState, state)
+
+                    self.currentState = state
+                    return action, state
 
             return result
 
