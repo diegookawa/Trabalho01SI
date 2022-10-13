@@ -47,7 +47,7 @@ class AgentRnd:
       
     
         # O agente le sua posica no ambiente por meio do sensor
-        initial = self.positionSensor()
+        initial = State(self.model.goalPos[0], self.model.goalPos[1])
         self.prob.defInitialState(initial.row, initial.col)
         print("*** Estado inicial do agente: ", self.prob.initialState)
         
@@ -91,6 +91,25 @@ class AgentRnd:
                 return True
         return False
 
+    def printGetMetrica(self):
+        list = []
+        numVictim = len(self.victims)
+        totalVictim = self.model.getNumberOfVictims()
+        totalSignals = self.somaLabels([self.model.getVictimVitalSignals(i) for i in range(totalVictim)])
+        vitalSignals = self.somaLabels([self.model.getVictimVitalSignals(int(i[1][0][0])) for i in self.victims])
+        
+        print(f"pve : {numVictim/totalVictim}")
+        print(f"tve : {self.costAll/numVictim}")
+        print(f"veg : {vitalSignals/totalSignals}")
+        
+
+    def somaLabels(self, signal):
+        total = 0
+        for signal in signal:
+            total += 5 - signal[0][-1]
+        return total
+
+
     ## Metodo que define a deliberacao do agente 
     def deliberate(self):
         ## Verifica se há algum plano a ser executado
@@ -132,8 +151,12 @@ class AgentRnd:
             print ("vitima encontrada em ", self.currentState, " id: ", victimId, " sinais vitais: ", self.victimVitalSignalsSensor(victimId))
             # print ("vitima encontrada em ", self.currentState, " id: ", victimId, " dif de acesso: ", self.victimDiffOfAcessSensor(victimId))
             if(not self.isInVictim(victimId)):
+                print("Vitma achada")
                 self.plan.result[self.plan.convertStateToPos(State(self.currentState.row, self.currentState.col))].type = 1
                 self.victims.append((State(self.currentState.row, self.currentState.col), self.victimVitalSignalsSensor(victimId)))
+                self.costAll += 2
+                self.tl -= 2
+                
 
         ## Define a proxima acao a ser executada
         ## currentAction eh uma tupla na forma: <direcao>, <state>

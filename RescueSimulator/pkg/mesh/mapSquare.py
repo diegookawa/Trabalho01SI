@@ -57,7 +57,7 @@ class MapSquare:
             ## Cria um objeto para armazenar cada informação
             things = {}
             ## Le o arquivo
-            arq = open(os.path.join("config_data/ambienteProfessor.txt"), "r")
+            arq = open(os.path.join("config_data/ambiente.txt"), "r")
             for line in arq:
                 ## O formato de cada linha é:
                 ## Nome x,y x,y x,y

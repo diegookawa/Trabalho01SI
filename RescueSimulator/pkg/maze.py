@@ -64,7 +64,7 @@ class Maze:
     def updateWalls(self):
        
         ## Metodo que atualiza a lista dos objetos (vitimas) que estao no labirinto
-        vs_file = open(os.path.join("config_data" ,"sinais_vitaisProfessor.txt"),"r")
+        vs_file = open(os.path.join("config_data" ,"sinais_vitais_com_label.txt"),"r")
         diff_file = open(os.path.join("config_data" ,"difacesso.txt"),"r")
 
 

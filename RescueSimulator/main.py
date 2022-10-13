@@ -22,7 +22,7 @@ def buildMaze(model):
 
 def main():
     # Lê arquivo config.txt
-    arq = open(os.path.join("config_data","ambienteProfessor.txt"),"r")
+    arq = open(os.path.join("config_data","ambiente.txt"),"r")
     configDict = {} 
     for line in arq:
         ## O formato de cada linha é:var=valor
@@ -53,7 +53,7 @@ def main():
     mesh = "square"
 
     ## nome do arquivo de configuracao do ambiente - deve estar na pasta <proj>/config_data
-    loadMaze = "ambienteProfessor"
+    loadMaze = "ambiente"
 
     model = Model(XMax, YMax, mesh, loadMaze)
     buildMaze(model)
@@ -72,20 +72,23 @@ def main():
     agent.deliberate()
     while agent.deliberate() != -1:
         model.draw()
-        time.sleep(0) # para dar tempo de visualizar as movimentacoes do agente no labirinto
+        time.sleep(0.0) # para dar tempo de visualizar as movimentacoes do agente no labirinto
     model.draw()    
+    time.sleep(5)
 
     for victim in agent.victims:
         print(victim)
+    print(len(agent.victims))
 
     rescuer = AgentRescuer(model, configDict, agent.plan.result, agent.victims)
     rescuer.deliberate()
     while rescuer.deliberate() != -1:
         model.draw()
-        time.sleep(0) # para dar tempo de visualizar as movimentacoes do agente no labirinto
+        time.sleep(0.03) # para dar tempo de visualizar as movimentacoes do agente no labirinto
 
     model.draw() 
-    print(f'Saved victims: {rescuer.victimNumber}')
+    agent.printGetMetrica()
+    rescuer.printGetMetrica()
 
 if __name__ == '__main__':
     main()

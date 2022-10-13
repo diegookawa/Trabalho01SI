@@ -1,6 +1,7 @@
 import sys
 import os
 import numpy as np
+import time
 
 from model import Model
 from problem import Problem
@@ -25,6 +26,7 @@ class AgentRescuer:
         self.victimNumber = 0
         self.result = result
         self.model = model
+        self.savedVictims = []
 
         ## Obtem o tempo que tem para executar
         self.tl = configDict["Ts"]
@@ -34,9 +36,10 @@ class AgentRescuer:
         self.prob = Problem()
         self.prob.createMaze(model.rows, model.columns, model.maze)
     
-        initial = self.positionSensor()
+        initial = State(self.model.goalPos[0], self.model.goalPos[1])
         self.prob.defInitialState(initial.row, initial.col)
         print("*** Estado inicial do agente: ", self.prob.initialState)
+        time.sleep(5)
         
         self.currentState = self.prob.initialState
         self.costAll = 0
@@ -54,6 +57,24 @@ class AgentRescuer:
         ## inicializa acao do ciclo anterior com o estado esperado
         self.previousAction = "nop"    ## nenhuma (no operation)
         self.expectedState = self.currentState
+
+        
+    def printGetMetrica(self):
+        list = []
+        numVictim = len(self.savedVictims)
+        totalVictim = self.model.getNumberOfVictims()
+        totalSignals = self.somaLabels([self.model.getVictimVitalSignals(i) for i in range(totalVictim)])
+        vitalSignals = self.somaLabels([self.model.getVictimVitalSignals(int(i[1][0][0])) for i in self.savedVictims])
+        
+        print(f"pvs : {numVictim/totalVictim}")
+        print(f"tvs : {self.costAll/numVictim}")
+        print(f"vsg : {vitalSignals/totalSignals}")
+
+    def somaLabels(self, signal):
+        total = 0
+        for signal in signal:
+            total += 5 - signal[0][-1]
+        return total
 
     ## Metodo que define a deliberacao do agente 
     def deliberate(self):
@@ -119,7 +140,8 @@ class AgentRescuer:
                 print("ERROR")
         else:
 
-            print("Victim saved")    
+            print("Victim saved")
+            self.savedVictims.append(self.victims[self.victimNumber])    
             self.victimNumber = self.victimNumber + 1
 
         return 1

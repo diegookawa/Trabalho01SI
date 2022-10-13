@@ -1,6 +1,7 @@
 from contextlib import nullcontext
 from random import randint
 import string
+from time import sleep
 from turtle import pos
 from zipfile import ZIP_BZIP2
 from state import State
@@ -8,7 +9,7 @@ from state import State
 import numpy as np
 import sys
 import math
-import enum
+import time
 
 class Result:
     def __init__(self):
@@ -176,8 +177,9 @@ class DfsPlan:
         else:
             return "S"
 
-    def movePosition(self, currentState):
-        
+    def movePosition(self, currentState, action=None):
+        if(action is None):
+            action = self.a
         movePos = { "N" : (-1, 0),
                 "S" : (1, 0),
                 "L" : (0, 1),
@@ -186,8 +188,29 @@ class DfsPlan:
                 "NO" : (-1, -1),
                 "SE" : (1, 1),
                 "SO" : (1, -1)}
-        s = State(currentState.row + movePos[self.a][0], currentState.col + movePos[self.a][1])
+        s = State(currentState.row + movePos[action][0], currentState.col + movePos[action][1])
         return s if s.row < self.maxRows and s.col < self.maxColumns else State(-1, -1) 
+    
+    def getActionCost(self, action):
+        """Retorna o custo da ação.
+        @param action:
+        @return custo da ação"""
+        if (action=="nop"):
+            return 0
+
+        if (action == "N" or action == "L" or action == "O" or action == "S"):   
+            return 1.0
+        
+        return 1.5
+
+    def getTimePath(self, path):
+        total = 0
+        for i in reversed(range(len(path))):
+            if(i == (len(path) - 1)):
+                total += self.getActionCost(self.actionToDo(self.currentState, path[i]))
+            else:
+                total += self.getActionCost(self.actionToDo(path[i + 1], path[i]))
+        return total
 
         
     def online_dfs_agent(self, currentState):
@@ -199,21 +222,15 @@ class DfsPlan:
                 "NO" : (-1, -1),
                 "SE" : (1, 1),
                 "SO" : (1, -1)}
+        self.backPath = self.star_a_search(self.result, self.maxRows, self.maxColumns, currentState, self.initialState)
+        timeToGoBack = self.getTimePath(self.backPath)
+        print(f"Time to Go Back: {timeToGoBack}")
 
-        # if (goal_test(currentState)):
-        #     return
-
-        #if (self.convertStateToPos(currentState) > len(self.untried)):
-            #self.untried.append(["N", "S", "L", "O", "NE", "NO", "SE", "SO"])
-
-        
-        if (self.timeLeft <= (self.initialTime / 8)):
-            
+        if (self.timeLeft <= timeToGoBack + 10):
             if (currentState.row == 0 and currentState.col == 0):
                 return
             else:
                 if (self.createdBackPath == False):
-                    self.backPath = self.star_a_search(self.result, self.maxRows, self.maxColumns, currentState, self.initialState)
                     self.createdBackPath = True
                     return
 
@@ -222,13 +239,13 @@ class DfsPlan:
             if (self.s is not None):
                 if (self.result[self.convertStateToPos(self.s)].directions[self.convertActionToNumber(self.a)] is None):
                     self.result[self.convertStateToPos(self.s)].directions[self.convertActionToNumber(self.a)] = currentState
-                    print(self.s, end=" +")
-                    print(currentState)
+                    for action in movePos:
+                        try:
+                            self.untried[self.convertStateToPos(self.movePosition(currentState, action))].pop(self.untried[self.convertStateToPos(self.movePosition(currentState, action))].index(self.returnOppositeAction(action)))
+                        except:
+                            pass
                     if(self.s.row != currentState.row or self.s.col != currentState.col):
                         self.result[self.convertStateToPos(currentState)].directions[self.convertActionToNumber(self.returnOppositeAction(self.a))] = self.s
-                        print("Inverse")
-                        print(self.convertActionToNumber(self.returnOppositeAction(self.a)))
-                        print(currentState)
                         try:
                             self.untried[self.convertStateToPos(currentState)].pop(self.untried[self.convertStateToPos(currentState)].index(self.returnOppositeAction(self.a)))
                         except:
@@ -244,21 +261,19 @@ class DfsPlan:
                 else:
                     print("Backtracking")
                     state_to_go_back = self.unbacktracked[self.convertStateToPos(currentState)].pop()
-                    print(state_to_go_back)
-                    action_number = -1
                     current = self.result[self.convertStateToPos(currentState)]
-                    for i in range(8):
-                        print(current.directions[i], end='')
-                        print(i)
-                        if (current.directions[i].row == state_to_go_back.row and current.directions[i].col == state_to_go_back.col):
-                            action_number = i
-                            print(i)
-                            break
+                    # for i in range(8):
+                    #     if (current.directions[i].row == state_to_go_back.row and current.directions[i].col == state_to_go_back.col):
+                    #         action_number = i
+                    #         break
                     
-                    if (action_number == -1):
-                        action_number = 0
+                    # if (action_number == -1):
+                    #     action_number = 0
 
-                    self.a = self.convertNumberToAction(action_number)
+                    # self.a = self.convertNumberToAction(action_number)
+                    while(state_to_go_back.row == currentState.row and state_to_go_back.col == currentState.col):
+                        state_to_go_back = self.unbacktracked[self.convertStateToPos(currentState)].pop()
+                    self.a = self.actionToDo(currentState, state_to_go_back)
                     
             else:
                 self.a = self.untried[self.convertStateToPos(currentState)].pop()
@@ -270,6 +285,12 @@ class DfsPlan:
         state = self.movePosition(currentState)
 
         return self.a, state
+
+    def isInList(self, list, state):
+        for i in range(len(list)):
+            if(list[i].row == state.row and list[i].col == state.col):
+                return True
+        return False
 
     def star_a_search (self, map, rows, columns, initialState, finalState):
         euclideanDistance = {}
@@ -286,8 +307,8 @@ class DfsPlan:
 
         fringe = []
         fringe.append(initialState)
-
         while (len (fringe) != 0):
+
             bestIndex = self.findBestState(fringe, heuristic)
             state = fringe.pop(bestIndex)
 
@@ -304,8 +325,7 @@ class DfsPlan:
 
                 next = nextStates[i]
 
-                if (next not in neighborStates and next not in fringe):
-                    
+                if (not self.isInList(neighborStates, next) and not self.isInList(fringe, state)):
                     fringe.append(next)
 
                     if next not in heuristic.keys():

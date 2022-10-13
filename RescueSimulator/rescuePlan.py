@@ -245,6 +245,27 @@ class RescuePlan:
         else:
             return 7
 
+    def getActionCost(self, action):
+        """Retorna o custo da ação.
+        @param action:
+        @return custo da ação"""
+        if (action=="nop"):
+            return 0
+
+        if (action == "N" or action == "L" or action == "O" or action == "S"):   
+            return 1.0
+        
+        return 1.5
+
+    def getTimePath(self, path):
+        total = 0
+        for i in reversed(range(len(path))):
+            if(i == (len(path) - 1)):
+                total += self.getActionCost(self.actionToDo(self.currentState, path[i]))
+            else:
+                total += self.getActionCost(self.actionToDo(path[i + 1], path[i]))
+        return total
+
     def chooseAction(self, currentVictim):
         if(currentVictim is None):
             if (self.createdBackPath == False):
@@ -267,13 +288,11 @@ class RescuePlan:
 
             return action, state
         else:
-            if (self.timeLeft <= (self.initialTime / 2)):
+            self.backPath = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, self.initialState)
+            timeToGoBack = self.getTimePath(self.backPath)
+
+            if (self.timeLeft <= timeToGoBack + 10):
                 if (self.createdBackPath == False):
-                        for i in range(self.maxRows):
-                            for j in range(self.maxColumns):
-                                print(self.result[self.convertStateToPos(State(i, j))].type, end=" ")
-                            print("")
-                        self.backPath = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, self.initialState)
                         self.createdBackPath = True
                 elif(self.currentState.row == self.initialState.row and self.currentState.col == self.initialState.col):
                     return "ArrivedAtBase", self.currentState
@@ -297,8 +316,8 @@ class RescuePlan:
                         if(self.s.row == self.currentState.row and self.s.col == self.currentState.col):
                             supposed = self.movePosition(self.currentState)
                             if(supposed.row >= 0 and supposed.col >= 0):
-                                if(self.convertActionToNumber(self.a) > 3):
-                                    self.result[self.convertStateToPos(supposed)].type = -1
+                                #if(self.convertActionToNumber(self.a) > 3):
+                                self.result[self.convertStateToPos(supposed)].type = -1
                             self.pathToVictim = self.star_a_search(self.result, self.maxRows, self.maxColumns, self.currentState, currentVictim)
                         elif(self.result[self.convertStateToPos(self.currentState)].type == 0):
                             self.result[self.convertStateToPos(self.currentState)].type = 5
